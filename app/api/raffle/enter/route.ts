@@ -41,13 +41,15 @@ export async function POST(request: NextRequest) {
         // 1. The row is locked (no one else can grab it)
         // 2. If already locked, skip to next available
         // 3. Prevents race conditions
-        const [ticket] = await tx.execute(sql`
+        const result = await tx.execute(sql`
           SELECT * FROM tickets
           WHERE status = 'available'
           ORDER BY RANDOM()
           LIMIT 1
           FOR UPDATE SKIP LOCKED
         `);
+
+        const ticket = result.rows[0] as { id: number; ticket_number: number } | undefined;
 
         if (!ticket) {
           throw new Error('No tickets available');
@@ -63,7 +65,7 @@ export async function POST(request: NextRequest) {
             buyerPhone: validatedData.phone,
             reservedAt: new Date(),
           })
-          .where(eq(tickets.ticketNumber, ticket.ticket_number))
+          .where(eq(tickets.id, ticket.id))
           .returning();
 
         return updatedTicket;
