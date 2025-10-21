@@ -72,7 +72,7 @@ export default function Home() {
             Wine Raffle
           </h1>
           <p className="text-xs text-slate-600 text-center mt-1">
-            Yeshivas Tiferes Yisroel v'Moshe
+            Yeshivas Tiferes Yisroel v&apos;Moshe
           </p>
         </div>
       </div>
@@ -120,7 +120,7 @@ export default function Home() {
                 1
               </div>
               <p className="text-sm text-slate-700 pt-0.5">
-                Click "Enter Raffle Now" and fill in your details
+                Click &ldquo;Enter Raffle Now&rdquo; and fill in your details
               </p>
             </div>
 
@@ -163,7 +163,7 @@ export default function Home() {
         <div className="bg-white rounded-lg p-5 shadow-sm">
           <h3 className="font-bold text-slate-900 mb-3">Ticket Board</h3>
           <p className="text-xs text-slate-600 mb-4">
-            Live view of all tickets. You'll be randomly assigned one when you enter.
+            Live view of all tickets. You&apos;ll be randomly assigned one when you enter.
           </p>
 
           <div className="flex gap-4 mb-4 text-xs">

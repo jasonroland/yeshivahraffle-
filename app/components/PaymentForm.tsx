@@ -5,11 +5,10 @@ import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { useRouter } from 'next/navigation';
 
 interface PaymentFormProps {
-  onSuccess: () => void;
   onCancel: () => void;
 }
 
-export default function PaymentForm({ onSuccess, onCancel }: PaymentFormProps) {
+export default function PaymentForm({ onCancel }: PaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const router = useRouter();

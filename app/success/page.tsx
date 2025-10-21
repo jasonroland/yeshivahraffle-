@@ -60,7 +60,7 @@ export default function SuccessPage() {
             Mazel Tov!
           </h1>
           <p className="text-gray-600">
-            You've successfully entered the raffle!
+            You&apos;ve successfully entered the raffle!
           </p>
         </div>
 
@@ -76,7 +76,7 @@ export default function SuccessPage() {
 
         <div className="space-y-4 mb-6">
           <div className="bg-blue-50 rounded-lg p-4 text-left">
-            <h3 className="font-semibold text-gray-900 mb-2">What's Next?</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">What&apos;s Next?</h3>
             <ul className="text-sm text-gray-700 space-y-2">
               <li className="flex items-start">
                 <span className="mr-2">✉️</span>
@@ -98,7 +98,7 @@ export default function SuccessPage() {
               Supporting a Great Cause
             </h3>
             <p className="text-sm text-gray-700">
-              Your contribution supports Yeshivas Tiferes Yisroel v'Moshe. Thank you for your generosity!
+              Your contribution supports Yeshivas Tiferes Yisroel v&apos;Moshe. Thank you for your generosity!
             </p>
           </div>
         </div>
