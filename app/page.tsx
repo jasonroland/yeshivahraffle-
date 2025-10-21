@@ -1,103 +1,223 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Elements } from '@stripe/react-stripe-js';
+import { getStripe } from '@/src/lib/stripe-client';
+import PaymentForm from '@/app/components/PaymentForm';
+
+interface TicketData {
+  ticketNumber: number;
+  status: 'available' | 'reserved' | 'sold';
+}
+
+interface TicketStats {
+  total: number;
+  sold: number;
+  reserved: number;
+  available: number;
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            gett started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [tickets, setTickets] = useState<TicketData[]>([]);
+  const [stats, setStats] = useState<TicketStats>({
+    total: 100,
+    sold: 0,
+    reserved: 0,
+    available: 100,
+  });
+  const [loading, setLoading] = useState(true);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const stripePromise = getStripe();
+
+  // Fetch ticket data
+  const fetchTickets = async () => {
+    try {
+      const response = await fetch('/api/raffle/tickets');
+      const data = await response.json();
+      setTickets(data.tickets);
+      setStats(data.stats);
+    } catch (error) {
+      console.error('Error fetching tickets:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTickets();
+
+    // Poll for updates every 5 seconds
+    const interval = setInterval(fetchTickets, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleSuccess = () => {
+    setShowPaymentModal(false);
+    fetchTickets(); // Refresh ticket data
+  };
+
+  const totalTickets = 100;
+  const allTicketNumbers = Array.from({ length: totalTickets }, (_, i) => i + 1);
+  const soldTicketNumbers = new Set(
+    tickets.filter(t => t.status === 'sold' || t.status === 'reserved').map(t => t.ticketNumber)
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm">
+        <div className="max-w-md mx-auto px-4 py-4">
+          <h1 className="text-lg font-bold text-slate-900 text-center">
+            Wine Raffle
+          </h1>
+          <p className="text-xs text-slate-600 text-center mt-1">
+            Yeshivas Tiferes Yisroel v'Moshe
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-md mx-auto px-4 py-6 space-y-4">
+
+        {/* CTA Button */}
+        <button
+          onClick={() => setShowPaymentModal(true)}
+          className="w-full py-4 bg-blue-600 text-white text-lg font-semibold rounded-lg shadow hover:bg-blue-700"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          Enter Raffle Now
+        </button>
+
+        {/* Stats */}
+        <div className="bg-white rounded-lg p-4 shadow-sm">
+          <div className="flex justify-between items-center">
+            <div className="text-center flex-1">
+              <div className="text-2xl font-bold text-slate-900">{loading ? '...' : stats.available}</div>
+              <div className="text-xs text-slate-600">Available</div>
+            </div>
+            <div className="w-px h-12 bg-slate-200"></div>
+            <div className="text-center flex-1">
+              <div className="text-2xl font-bold text-slate-900">{loading ? '...' : stats.sold}</div>
+              <div className="text-xs text-slate-600">Sold</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Prize */}
+        <div className="bg-white rounded-lg p-6 shadow-sm text-center">
+          <div className="text-6xl mb-3">🍷</div>
+          <h2 className="text-lg font-bold text-slate-900">Premium Wine Bottle</h2>
+          <p className="text-sm text-slate-600 mt-1">Win this beautiful prize!</p>
+        </div>
+
+        {/* How it works */}
+        <div className="bg-white rounded-lg p-5 shadow-sm">
+          <h3 className="font-bold text-slate-900 mb-4">How It Works</h3>
+
+          <div className="space-y-4">
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-6 h-6 bg-slate-900 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                1
+              </div>
+              <p className="text-sm text-slate-700 pt-0.5">
+                Click "Enter Raffle Now" and fill in your details
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-6 h-6 bg-slate-900 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                2
+              </div>
+              <p className="text-sm text-slate-700 pt-0.5">
+                Get randomly assigned a ticket number (1-100)
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-6 h-6 bg-slate-900 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                3
+              </div>
+              <p className="text-sm text-slate-700 pt-0.5">
+                Pay the amount of your ticket number ($1-$100)
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-6 h-6 bg-slate-900 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                4
+              </div>
+              <p className="text-sm text-slate-700 pt-0.5">
+                Winner drawn when all tickets are sold
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+            <p className="text-xs text-slate-700">
+              <strong>Note:</strong> Your payment depends on your randomly assigned ticket. You could pay as little as $1 or up to $100.
+            </p>
+          </div>
+        </div>
+
+        {/* Ticket Grid */}
+        <div className="bg-white rounded-lg p-5 shadow-sm">
+          <h3 className="font-bold text-slate-900 mb-3">Ticket Board</h3>
+          <p className="text-xs text-slate-600 mb-4">
+            Live view of all tickets. You'll be randomly assigned one when you enter.
+          </p>
+
+          <div className="flex gap-4 mb-4 text-xs">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 bg-emerald-500 rounded-sm"></div>
+              <span className="text-slate-600">Available</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 bg-slate-300 rounded-sm"></div>
+              <span className="text-slate-600">Sold</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-10 gap-1.5">
+            {allTicketNumbers.map((ticketNumber) => (
+              <div
+                key={ticketNumber}
+                className={`
+                  aspect-square rounded flex items-center justify-center text-[10px] font-semibold
+                  ${soldTicketNumbers.has(ticketNumber)
+                    ? 'bg-slate-300 text-slate-600'
+                    : 'bg-emerald-500 text-white'
+                  }
+                `}
+              >
+                {ticketNumber}
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+
+      {/* Payment Modal */}
+      {showPaymentModal && (
+        <Elements stripe={stripePromise}>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+              <h3 className="text-xl font-bold text-slate-900 mb-4">Enter Raffle</h3>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-5">
+                <p className="text-xs text-slate-700">
+                  You will be randomly assigned a ticket number and charged $1-$100 based on that number.
+                </p>
+              </div>
+
+              <PaymentForm
+                onSuccess={handleSuccess}
+                onCancel={() => setShowPaymentModal(false)}
+              />
+            </div>
+          </div>
+        </Elements>
+      )}
     </div>
   );
 }
