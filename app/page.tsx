@@ -52,11 +52,6 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleSuccess = () => {
-    setShowPaymentModal(false);
-    fetchTickets(); // Refresh ticket data
-  };
-
   const totalTickets = 100;
   const allTicketNumbers = Array.from({ length: totalTickets }, (_, i) => i + 1);
   const soldTicketNumbers = new Set(
@@ -211,7 +206,6 @@ export default function Home() {
               </div>
 
               <PaymentForm
-                onSuccess={handleSuccess}
                 onCancel={() => setShowPaymentModal(false)}
               />
             </div>

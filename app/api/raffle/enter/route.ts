@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { db } from '@/src/db';
 import { tickets } from '@/src/db/schema';
 import { stripe } from '@/src/lib/stripe';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 const enterRaffleSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
           FOR UPDATE SKIP LOCKED
         `);
 
-        const ticket = result.rows[0] as { id: number; ticket_number: number } | undefined;
+        const ticket = result[0] as { id: number; ticket_number: number } | undefined;
 
         if (!ticket) {
           throw new Error('No tickets available');
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
         return updatedTicket;
       });
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { success: false, error: 'All tickets sold out during processing. Please try again.' },
         { status: 400 }
@@ -105,8 +105,9 @@ export async function POST(request: NextRequest) {
         },
         receipt_email: validatedData.email,
         description: `Yeshiva Raffle - Ticket #${assignedTicket.ticketNumber}`,
+        expand: ['latest_charge'],
       });
-    } catch (error) {
+    } catch {
       // Payment failed - release the ticket back to available
       await db
         .update(tickets)
@@ -140,19 +141,24 @@ export async function POST(request: NextRequest) {
       .where(eq(tickets.id, assignedTicket.id));
 
     // Success!
+    const latestCharge = paymentIntent.latest_charge;
+    const receiptUrl = typeof latestCharge === 'object' && latestCharge !== null
+      ? latestCharge.receipt_url
+      : null;
+
     return NextResponse.json({
       success: true,
       ticketNumber: assignedTicket.ticketNumber,
       amountCharged: assignedTicket.ticketNumber,
-      receiptUrl: paymentIntent.charges?.data[0]?.receipt_url,
+      receiptUrl,
     });
 
-  } catch (error) {
-    console.error('Error in raffle entry:', error);
+  } catch (err) {
+    console.error('Error in raffle entry:', err);
 
-    if (error instanceof z.ZodError) {
+    if (err instanceof z.ZodError) {
       return NextResponse.json(
-        { success: false, error: error.errors[0].message },
+        { success: false, error: err.issues[0]?.message || 'Validation error' },
         { status: 400 }
       );
     }
