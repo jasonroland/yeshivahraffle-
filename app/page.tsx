@@ -2,8 +2,6 @@
 
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { Elements } from '@stripe/react-stripe-js';
-import { getStripe } from '@/src/lib/stripe-client';
 import PaymentForm from '@/app/components/PaymentForm';
 
 interface TicketData {
@@ -28,8 +26,6 @@ export default function Home() {
     available: 100,
   });
   const [loading, setLoading] = useState(true);
-
-  const stripePromise = getStripe();
 
   // Fetch ticket data
   const fetchTickets = async () => {
@@ -236,23 +232,21 @@ export default function Home() {
 
       {/* Payment Modal */}
       {showPaymentModal && (
-        <Elements stripe={stripePromise}>
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
-              <h3 className="text-xl font-bold text-slate-900 mb-4">Enter Raffle</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold text-slate-900 mb-4">Enter Raffle</h3>
 
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-5">
-                <p className="text-xs text-slate-700">
-                  You will be randomly assigned a ticket number and charged $1-$100 based on that number.
-                </p>
-              </div>
-
-              <PaymentForm
-                onCancel={() => setShowPaymentModal(false)}
-              />
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-5">
+              <p className="text-xs text-slate-700">
+                You will be randomly assigned a ticket number and charged $1-$100 based on that number.
+              </p>
             </div>
+
+            <PaymentForm
+              onCancel={() => setShowPaymentModal(false)}
+            />
           </div>
-        </Elements>
+        </div>
       )}
     </div>
   );

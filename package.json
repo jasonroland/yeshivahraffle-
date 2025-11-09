@@ -11,8 +11,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@stripe/react-stripe-js": "^5.2.0",
-    "@stripe/stripe-js": "^8.1.0",
+    "authorizenet": "^1.0.10",
     "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.5",
     "drizzle-orm": "^0.44.6",
@@ -20,7 +19,6 @@
     "postgres": "^3.4.7",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "stripe": "^19.1.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {

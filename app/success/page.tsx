@@ -8,7 +8,7 @@ function SuccessContent() {
   const searchParams = useSearchParams();
   const ticketNumber = searchParams.get('ticket');
   const amountCharged = searchParams.get('amount');
-  const receiptUrl = searchParams.get('receipt');
+  const transactionId = searchParams.get('transactionId');
 
   const [confetti, setConfetti] = useState(true);
 
@@ -80,7 +80,7 @@ function SuccessContent() {
             <ul className="text-sm text-gray-700 space-y-2">
               <li className="flex items-start">
                 <span className="mr-2">✉️</span>
-                <span>Check your email for a payment receipt from Stripe</span>
+                <span>Check your email for a payment receipt</span>
               </li>
               <li className="flex items-start">
                 <span className="mr-2">🎯</span>
@@ -104,15 +104,11 @@ function SuccessContent() {
         </div>
 
         <div className="flex flex-col gap-3">
-          {receiptUrl && receiptUrl !== 'null' && (
-            <a
-              href={receiptUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-            >
-              View Receipt
-            </a>
+          {transactionId && transactionId !== 'null' && (
+            <div className="bg-gray-50 rounded-lg p-3 text-left">
+              <p className="text-xs text-gray-600 mb-1">Transaction ID</p>
+              <p className="text-sm font-mono text-gray-900">{transactionId}</p>
+            </div>
           )}
 
           <Link

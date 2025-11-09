@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/src/db';
 import { tickets } from '@/src/db/schema';
-import { stripe } from '@/src/lib/stripe';
+import { merchantAuthenticationType, ApiContracts, ApiControllers } from '@/src/lib/authorizenet';
 import { eq, sql } from 'drizzle-orm';
 
 const enterRaffleSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Valid email is required'),
   phone: z.string().min(10, 'Valid phone number is required'),
-  paymentMethodId: z.string().min(1, 'Payment method is required'),
+  opaqueDataDescriptor: z.string().min(1, 'Payment data is required'),
+  opaqueDataValue: z.string().min(1, 'Payment data is required'),
 });
 
 export async function POST(request: NextRequest) {
@@ -84,30 +85,113 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 3: Create and confirm payment with exact amount
-    const actualAmount = assignedTicket.ticketNumber * 100; // Convert to cents
-    let paymentIntent;
+    // Step 3: Create and charge payment with exact amount using Authorize.Net
+    const actualAmount = assignedTicket.ticketNumber; // Amount in dollars
 
     try {
-      paymentIntent = await stripe.paymentIntents.create({
-        amount: actualAmount,
-        currency: 'usd',
-        payment_method: validatedData.paymentMethodId,
-        confirm: true,
-        automatic_payment_methods: {
-          enabled: true,
-          allow_redirects: 'never',
-        },
-        metadata: {
-          ticketNumber: assignedTicket.ticketNumber.toString(),
-          buyerName: validatedData.name,
-          buyerEmail: validatedData.email,
-        },
-        receipt_email: validatedData.email,
-        description: `Yeshiva Raffle - Ticket #${assignedTicket.ticketNumber}`,
-        expand: ['latest_charge'],
+      // Create the payment data
+      const opaqueData = new ApiContracts.OpaqueDataType();
+      opaqueData.setDataDescriptor(validatedData.opaqueDataDescriptor);
+      opaqueData.setDataValue(validatedData.opaqueDataValue);
+
+      const paymentType = new ApiContracts.PaymentType();
+      paymentType.setOpaqueData(opaqueData);
+
+      // Set order information
+      const orderDetails = new ApiContracts.OrderType();
+      orderDetails.setInvoiceNumber(`DONATION-${assignedTicket.ticketNumber}`);
+      orderDetails.setDescription(`Thank you for your donation to Yeshivas Tiferes Yisroel v'Moshe`);
+
+      // Set billing information
+      const billTo = new ApiContracts.CustomerAddressType();
+      billTo.setFirstName(validatedData.name.split(' ')[0] || validatedData.name);
+      billTo.setLastName(validatedData.name.split(' ').slice(1).join(' ') || '');
+      billTo.setEmail(validatedData.email);
+      billTo.setPhoneNumber(validatedData.phone);
+
+      // Set customer email for receipt
+      const customerData = new ApiContracts.CustomerDataType();
+      customerData.setEmail(validatedData.email);
+
+      // Create transaction request
+      const transactionRequest = new ApiContracts.TransactionRequestType();
+      transactionRequest.setTransactionType(ApiContracts.TransactionTypeEnum.AUTHCAPTURETRANSACTION);
+      transactionRequest.setPayment(paymentType);
+      transactionRequest.setAmount(actualAmount);
+      transactionRequest.setOrder(orderDetails);
+      transactionRequest.setBillTo(billTo);
+      transactionRequest.setCustomer(customerData);
+
+      // Create request
+      const createRequest = new ApiContracts.CreateTransactionRequest();
+      createRequest.setMerchantAuthentication(merchantAuthenticationType);
+      createRequest.setTransactionRequest(transactionRequest);
+
+      // Execute transaction
+      const ctrl = new ApiControllers.CreateTransactionController(createRequest.getJSON());
+
+      const transactionResponse = await new Promise<{
+        success: boolean;
+        transactionId?: string;
+        errorMessage?: string;
+      }>((resolve) => {
+        ctrl.execute(() => {
+          const apiResponse = ctrl.getResponse();
+          const response = new ApiContracts.CreateTransactionResponse(apiResponse);
+
+          if (response.getMessages().getResultCode() === ApiContracts.MessageTypeEnum.OK) {
+            const transactionResponse = response.getTransactionResponse();
+            if (transactionResponse && transactionResponse.getMessages()) {
+              resolve({
+                success: true,
+                transactionId: transactionResponse.getTransId(),
+              });
+            } else {
+              const errors = transactionResponse?.getErrors();
+              const errorMessage = errors
+                ? errors.getError().map((e: { getErrorText: () => string }) => e.getErrorText()).join(', ')
+                : 'Transaction failed';
+              resolve({
+                success: false,
+                errorMessage,
+              });
+            }
+          } else {
+            const errors = response.getTransactionResponse()?.getErrors();
+            const errorMessage = errors
+              ? errors.getError().map((e: { getErrorText: () => string }) => e.getErrorText()).join(', ')
+              : response.getMessages().getMessage()[0].getText();
+            resolve({
+              success: false,
+              errorMessage,
+            });
+          }
+        });
       });
-    } catch {
+
+      if (!transactionResponse.success) {
+        throw new Error(transactionResponse.errorMessage || 'Payment failed');
+      }
+
+      // Step 4: Mark ticket as sold and save transaction ID
+      await db
+        .update(tickets)
+        .set({
+          status: 'sold',
+          amountPaid: assignedTicket.ticketNumber,
+          stripePaymentIntentId: transactionResponse.transactionId || null,
+          purchasedAt: new Date(),
+        })
+        .where(eq(tickets.id, assignedTicket.id));
+
+      // Success!
+      return NextResponse.json({
+        success: true,
+        ticketNumber: assignedTicket.ticketNumber,
+        amountCharged: assignedTicket.ticketNumber,
+        transactionId: transactionResponse.transactionId,
+      });
+    } catch (error) {
       // Payment failed - release the ticket back to available
       await db
         .update(tickets)
@@ -120,39 +204,15 @@ export async function POST(request: NextRequest) {
         })
         .where(eq(tickets.id, assignedTicket.id));
 
+      const errorMessage = error instanceof Error ? error.message : 'Payment failed';
       return NextResponse.json(
         {
           success: false,
-          error: 'Payment failed. Your card was not charged. Please try again.'
+          error: `${errorMessage}. Your card was not charged. Please try again.`,
         },
         { status: 400 }
       );
     }
-
-    // Step 4: Mark ticket as sold and save payment intent ID
-    await db
-      .update(tickets)
-      .set({
-        status: 'sold',
-        amountPaid: assignedTicket.ticketNumber,
-        stripePaymentIntentId: paymentIntent.id,
-        purchasedAt: new Date(),
-      })
-      .where(eq(tickets.id, assignedTicket.id));
-
-    // Success!
-    const latestCharge = paymentIntent.latest_charge;
-    const receiptUrl = typeof latestCharge === 'object' && latestCharge !== null
-      ? latestCharge.receipt_url
-      : null;
-
-    return NextResponse.json({
-      success: true,
-      ticketNumber: assignedTicket.ticketNumber,
-      amountCharged: assignedTicket.ticketNumber,
-      receiptUrl,
-    });
-
   } catch (err) {
     console.error('Error in raffle entry:', err);
 
