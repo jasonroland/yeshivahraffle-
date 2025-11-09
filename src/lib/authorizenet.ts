@@ -3,6 +3,7 @@ const authorizenet = require('authorizenet');
 
 const ApiContracts = authorizenet.APIContracts;
 const ApiControllers = authorizenet.APIControllers;
+const Constants = authorizenet.Constants;
 
 // Lazy initialization function
 export function getMerchantAuthentication() {
@@ -24,4 +25,4 @@ export function getMerchantAuthentication() {
 // Use sandbox for testing, production for live
 export const isProduction = process.env.AUTHORIZENET_ENVIRONMENT === 'production';
 
-export { ApiContracts, ApiControllers };
+export { ApiContracts, ApiControllers, Constants };

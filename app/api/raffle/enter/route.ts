@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/src/db';
 import { tickets } from '@/src/db/schema';
-import { getMerchantAuthentication, ApiContracts, ApiControllers } from '@/src/lib/authorizenet';
+import { getMerchantAuthentication, ApiContracts, ApiControllers, Constants } from '@/src/lib/authorizenet';
 import { eq, sql } from 'drizzle-orm';
 
 const enterRaffleSchema = z.object({
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
 
       // Set environment - use sandbox for testing, production for live
       if (process.env.AUTHORIZENET_ENVIRONMENT !== 'production') {
-        ctrl.setEnvironment('https://apitest.authorize.net/xml/v1/request.api');
+        ctrl.setEnvironment(Constants.endpoint.sandbox);
       }
 
       const transactionResponse = await new Promise<{
