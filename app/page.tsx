@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { Elements } from '@stripe/react-stripe-js';
 import { getStripe } from '@/src/lib/stripe-client';
@@ -75,6 +76,16 @@ export default function Home() {
       {/* Main Content */}
       <div className="max-w-md mx-auto px-4 py-6 space-y-4">
 
+        {/* Raffle Image */}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden relative aspect-video">
+          <Image
+            src="/Document.png"
+            alt="YTYM Group"
+            layout="fill"
+            objectFit="contain"
+            priority
+          />
+        </div>
         {/* CTA Button */}
         <button
           onClick={() => setShowPaymentModal(true)}
