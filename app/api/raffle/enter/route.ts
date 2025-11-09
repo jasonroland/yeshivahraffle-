@@ -130,6 +130,11 @@ export async function POST(request: NextRequest) {
       // Execute transaction
       const ctrl = new ApiControllers.CreateTransactionController(createRequest.getJSON());
 
+      // Set environment - use sandbox for testing, production for live
+      if (process.env.AUTHORIZENET_ENVIRONMENT !== 'production') {
+        ctrl.setEnvironment('https://apitest.authorize.net/xml/v1/request.api');
+      }
+
       const transactionResponse = await new Promise<{
         success: boolean;
         transactionId?: string;
