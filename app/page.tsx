@@ -192,6 +192,37 @@ export default function Home() {
 
       </div>
 
+      {/* Disclaimer */}
+      <div className="max-w-md mx-auto px-4 pt-2 pb-8 text-xs text-slate-500">
+        <h4 className="font-bold mb-2 text-slate-600">
+          No Purchase Necessary Clause
+        </h4>
+        <div className="space-y-2">
+          <p>
+            No purchase, donation, or payment of any kind is necessary to enter
+            or win. A purchase or donation will not increase your chances of
+            winning. To enter without purchase, participants may submit a
+            legibly handwritten postcard, no larger than 4” x 6”, containing
+            their full name, complete mailing address, phone number, and email
+            address to:
+          </p>
+          <p>
+            YTYM
+            <br />
+            Attn: “No Purchase Necessary Entry”
+            <br />
+            1069 Dickens Street
+            <br />
+            Far Rockaway, NY 11691
+          </p>
+          <p>
+            All mail-in entries must be received by November 21, 2025 to be
+            eligible. Entries that are incomplete, illegible, mechanically
+            reproduced, or received after the deadline will not be accepted.
+          </p>
+        </div>
+      </div>
+
       {/* Payment Modal */}
       {showPaymentModal && (
         <Elements stripe={stripePromise}>
