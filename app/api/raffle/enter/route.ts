@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/src/db';
 import { tickets } from '@/src/db/schema';
-import { merchantAuthenticationType, ApiContracts, ApiControllers } from '@/src/lib/authorizenet';
+import { getMerchantAuthentication, ApiContracts, ApiControllers } from '@/src/lib/authorizenet';
 import { eq, sql } from 'drizzle-orm';
 
 const enterRaffleSchema = z.object({
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
 
       // Create request
       const createRequest = new ApiContracts.CreateTransactionRequest();
-      createRequest.setMerchantAuthentication(merchantAuthenticationType);
+      createRequest.setMerchantAuthentication(getMerchantAuthentication());
       createRequest.setTransactionRequest(transactionRequest);
 
       // Execute transaction
