@@ -1,5 +1,8 @@
-import ApiContracts from 'authorizenet';
-import ApiControllers from 'authorizenet';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const authorizenet = require('authorizenet');
+
+const ApiContracts = authorizenet.APIContracts;
+const ApiControllers = authorizenet.APIControllers;
 
 if (!process.env.AUTHORIZENET_API_LOGIN_ID) {
   throw new Error('AUTHORIZENET_API_LOGIN_ID is not defined in environment variables');
