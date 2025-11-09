@@ -46,6 +46,7 @@ export default function PaymentForm({ onCancel }: PaymentFormProps) {
     name: '',
     email: '',
     phone: '',
+    zip: '',
     cardNumber: '',
     expMonth: '',
     expYear: '',
@@ -123,6 +124,7 @@ export default function PaymentForm({ onCancel }: PaymentFormProps) {
               name: formData.name,
               email: formData.email,
               phone: formData.phone,
+              zip: formData.zip,
               opaqueDataDescriptor: response.opaqueData.dataDescriptor,
               opaqueDataValue: response.opaqueData.dataValue,
             }),
@@ -195,6 +197,25 @@ export default function PaymentForm({ onCancel }: PaymentFormProps) {
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           placeholder="(555) 123-4567"
+          disabled={loading}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+          Zip Code
+        </label>
+        <input
+          type="text"
+          required
+          value={formData.zip}
+          onChange={(e) => {
+            const value = e.target.value.replace(/\D/g, '');
+            setFormData({ ...formData, zip: value.slice(0, 5) });
+          }}
+          className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          placeholder="12345"
+          maxLength={5}
           disabled={loading}
         />
       </div>

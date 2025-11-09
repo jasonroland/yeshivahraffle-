@@ -9,6 +9,7 @@ const enterRaffleSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Valid email is required'),
   phone: z.string().min(10, 'Valid phone number is required'),
+  zip: z.string().min(5, 'Valid zip code is required').max(5, 'Valid zip code is required'),
   opaqueDataDescriptor: z.string().min(1, 'Payment data is required'),
   opaqueDataValue: z.string().min(1, 'Payment data is required'),
 });
@@ -108,6 +109,7 @@ export async function POST(request: NextRequest) {
       billTo.setLastName(validatedData.name.split(' ').slice(1).join(' ') || '');
       billTo.setEmail(validatedData.email);
       billTo.setPhoneNumber(validatedData.phone);
+      billTo.setZip(validatedData.zip);
 
       // Set customer email for receipt
       const customerData = new ApiContracts.CustomerDataType();
