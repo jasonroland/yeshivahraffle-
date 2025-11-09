@@ -158,7 +158,7 @@ export default function Home() {
         <div className="bg-white rounded-lg p-5 shadow-sm">
           <h3 className="font-bold text-slate-900 mb-3">Ticket Board</h3>
           <p className="text-xs text-slate-600 mb-4">
-            Live view of all tickets. You&apos;ll be randomly assigned one when you enter.
+            Live view of all tickets. You&apos;ll be randomly assigned one when you enter the raffle.
           </p>
 
           <div className="flex gap-4 mb-4 text-xs">
