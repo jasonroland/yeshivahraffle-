@@ -203,25 +203,6 @@ export default function PaymentForm({ onCancel }: PaymentFormProps) {
 
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-          Zip Code
-        </label>
-        <input
-          type="text"
-          required
-          value={formData.zip}
-          onChange={(e) => {
-            const value = e.target.value.replace(/\D/g, '');
-            setFormData({ ...formData, zip: value.slice(0, 5) });
-          }}
-          className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-          placeholder="12345"
-          maxLength={5}
-          disabled={loading}
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-slate-700 mb-1.5">
           Card Number
         </label>
         <input
@@ -297,6 +278,25 @@ export default function PaymentForm({ onCancel }: PaymentFormProps) {
             disabled={loading}
           />
         </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+          Zip Code
+        </label>
+        <input
+          type="text"
+          required
+          value={formData.zip}
+          onChange={(e) => {
+            const value = e.target.value.replace(/\D/g, '');
+            setFormData({ ...formData, zip: value.slice(0, 5) });
+          }}
+          className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          placeholder="12345"
+          maxLength={5}
+          disabled={loading}
+        />
       </div>
 
       {error && (
