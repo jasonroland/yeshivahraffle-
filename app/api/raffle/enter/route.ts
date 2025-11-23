@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/src/db';
 import { tickets } from '@/src/db/schema';
-import { getMerchantAuthentication, ApiContracts, ApiControllers, Constants } from '@/src/lib/authorizenet';
+import { authorizeTransaction, getCardPointeConfig, isTransactionApproved, formatAmountToCents } from '@/src/lib/cardpointe';
 import { eq, sql } from 'drizzle-orm';
 
 const enterRaffleSchema = z.object({
@@ -10,8 +10,10 @@ const enterRaffleSchema = z.object({
   email: z.string().email('Valid email is required'),
   phone: z.string().min(10, 'Valid phone number is required'),
   zip: z.string().min(5, 'Valid zip code is required').max(5, 'Valid zip code is required'),
-  opaqueDataDescriptor: z.string().min(1, 'Payment data is required'),
-  opaqueDataValue: z.string().min(1, 'Payment data is required'),
+  cardNumber: z.string().min(13, 'Valid card number is required'),
+  expMonth: z.string().length(2, 'Valid expiration month is required'),
+  expYear: z.string().length(4, 'Valid expiration year is required'),
+  cvv: z.string().min(3, 'Valid CVV is required').max(4),
 });
 
 export async function POST(request: NextRequest) {
@@ -86,98 +88,45 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 3: Create and charge payment with exact amount using Authorize.Net
+    // Step 3: Create and charge payment with exact amount using CardPointe
     const actualAmount = assignedTicket.ticketNumber; // Amount in dollars
+    const amountInCents = formatAmountToCents(actualAmount);
 
     try {
-      // Create the payment data
-      const opaqueData = new ApiContracts.OpaqueDataType();
-      opaqueData.setDataDescriptor(validatedData.opaqueDataDescriptor);
-      opaqueData.setDataValue(validatedData.opaqueDataValue);
+      // Get CardPointe config
+      const config = getCardPointeConfig();
 
-      const paymentType = new ApiContracts.PaymentType();
-      paymentType.setOpaqueData(opaqueData);
+      // Format expiry as MMYY
+      const expiry = validatedData.expMonth + validatedData.expYear.slice(-2);
 
-      // Set order information
-      const orderDetails = new ApiContracts.OrderType();
-      orderDetails.setInvoiceNumber(`DONATION-${assignedTicket.ticketNumber}`);
-      orderDetails.setDescription(`Thank you for your donation to Yeshivas Tiferes Yisroel v'Moshe`);
+      // Create donation message
+      const dollarAmount = (parseFloat(amountInCents) / 100).toFixed(2);
+      const donationMessage = `Thank you for your donation of $${dollarAmount}!`;
 
-      // Set billing information
-      const billTo = new ApiContracts.CustomerAddressType();
-      billTo.setFirstName(validatedData.name.split(' ')[0] || validatedData.name);
-      billTo.setLastName(validatedData.name.split(' ').slice(1).join(' ') || '');
-      billTo.setEmail(validatedData.email);
-      billTo.setPhoneNumber(validatedData.phone);
-      billTo.setZip(validatedData.zip);
-
-      // Set customer email for receipt
-      const customerData = new ApiContracts.CustomerDataType();
-      customerData.setEmail(validatedData.email);
-
-      // Create transaction request
-      const transactionRequest = new ApiContracts.TransactionRequestType();
-      transactionRequest.setTransactionType(ApiContracts.TransactionTypeEnum.AUTHCAPTURETRANSACTION);
-      transactionRequest.setPayment(paymentType);
-      transactionRequest.setAmount(actualAmount);
-      transactionRequest.setOrder(orderDetails);
-      transactionRequest.setBillTo(billTo);
-      transactionRequest.setCustomer(customerData);
-
-      // Create request
-      const createRequest = new ApiContracts.CreateTransactionRequest();
-      createRequest.setMerchantAuthentication(getMerchantAuthentication());
-      createRequest.setTransactionRequest(transactionRequest);
-
-      // Execute transaction
-      const ctrl = new ApiControllers.CreateTransactionController(createRequest.getJSON());
-
-      // Set environment - use sandbox for testing, production for live
-      if (process.env.AUTHORIZENET_ENVIRONMENT !== 'production') {
-        ctrl.setEnvironment(Constants.endpoint.sandbox);
-      }
-
-      const transactionResponse = await new Promise<{
-        success: boolean;
-        transactionId?: string;
-        errorMessage?: string;
-      }>((resolve) => {
-        ctrl.execute(() => {
-          const apiResponse = ctrl.getResponse();
-          const response = new ApiContracts.CreateTransactionResponse(apiResponse);
-
-          if (response.getMessages().getResultCode() === ApiContracts.MessageTypeEnum.OK) {
-            const transactionResponse = response.getTransactionResponse();
-            if (transactionResponse && transactionResponse.getMessages()) {
-              resolve({
-                success: true,
-                transactionId: transactionResponse.getTransId(),
-              });
-            } else {
-              const errors = transactionResponse?.getErrors();
-              const errorMessage = errors
-                ? errors.getError().map((e: { getErrorText: () => string }) => e.getErrorText()).join(', ')
-                : 'Transaction failed';
-              resolve({
-                success: false,
-                errorMessage,
-              });
-            }
-          } else {
-            const errors = response.getTransactionResponse()?.getErrors();
-            const errorMessage = errors
-              ? errors.getError().map((e: { getErrorText: () => string }) => e.getErrorText()).join(', ')
-              : response.getMessages().getMessage()[0].getText();
-            resolve({
-              success: false,
-              errorMessage,
-            });
-          }
-        });
+      // Call CardPointe API
+      const response = await authorizeTransaction({
+        merchid: config.merchantId,
+        account: validatedData.cardNumber,
+        expiry: expiry,
+        amount: amountInCents,
+        currency: 'USD',
+        capture: 'y',
+        cvv2: validatedData.cvv,
+        receipt: 'y',
+        email: validatedData.email,
+        name: validatedData.name,
+        postal: validatedData.zip,
+        userfields: {
+          donation_message: donationMessage,
+          donor_name: validatedData.name,
+          invoice_number: `DONATION-${assignedTicket.ticketNumber}`,
+          description: 'Thank you for your donation to Yeshivas Tiferes Yisroel v\'Moshe',
+        },
       });
 
-      if (!transactionResponse.success) {
-        throw new Error(transactionResponse.errorMessage || 'Payment failed');
+      // Check if transaction was approved
+      if (!isTransactionApproved(response)) {
+        throw new Error(response.resptext || 'Transaction declined');
       }
 
       // Step 4: Mark ticket as sold and save transaction ID
@@ -186,7 +135,7 @@ export async function POST(request: NextRequest) {
         .set({
           status: 'sold',
           amountPaid: assignedTicket.ticketNumber,
-          stripePaymentIntentId: transactionResponse.transactionId || null,
+          transactionId: response.retref, // Using retref (retrieval reference number) as transaction ID
           purchasedAt: new Date(),
         })
         .where(eq(tickets.id, assignedTicket.id));
@@ -196,7 +145,7 @@ export async function POST(request: NextRequest) {
         success: true,
         ticketNumber: assignedTicket.ticketNumber,
         amountCharged: assignedTicket.ticketNumber,
-        transactionId: transactionResponse.transactionId,
+        transactionId: response.retref,
       });
     } catch (error) {
       // Payment failed - release the ticket back to available

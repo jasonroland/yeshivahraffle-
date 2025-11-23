@@ -10,7 +10,7 @@ export const tickets = pgTable('tickets', {
   buyerEmail: varchar('buyer_email', { length: 255 }),
   buyerPhone: varchar('buyer_phone', { length: 50 }),
   amountPaid: integer('amount_paid'),
-  stripePaymentIntentId: varchar('stripe_payment_intent_id', { length: 255 }),
+  transactionId: varchar('stripe_payment_intent_id', { length: 255 }), // Column name kept for DB compatibility
   reservedAt: timestamp('reserved_at'),
   purchasedAt: timestamp('purchased_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
