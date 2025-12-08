@@ -30,7 +30,7 @@ export async function GET() {
     return NextResponse.json({
       tickets: allTickets,
       stats: {
-        total: 100,
+        total: allTickets.length,
         sold: Number(soldCount),
         reserved: Number(reservedCount),
         available: Number(availableCount),
