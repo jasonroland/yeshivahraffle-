@@ -49,8 +49,7 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  const totalTickets = 100;
-  const allTicketNumbers = Array.from({ length: totalTickets }, (_, i) => i + 1);
+  const allTicketNumbers = Array.from({ length: stats.total }, (_, i) => i + 1);
   const soldTicketNumbers = new Set(
     tickets.filter(t => t.status === 'sold' || t.status === 'reserved').map(t => t.ticketNumber)
   );
@@ -131,7 +130,7 @@ export default function Home() {
                 2
               </div>
               <p className="text-sm text-slate-700 pt-0.5">
-                Get randomly assigned a ticket number (1-100)
+                Get randomly assigned a ticket number
               </p>
             </div>
 
@@ -140,7 +139,7 @@ export default function Home() {
                 3
               </div>
               <p className="text-sm text-slate-700 pt-0.5">
-                Pay the amount of your ticket number ($1-$100)
+                Pay the amount of your ticket number
               </p>
             </div>
 
@@ -156,7 +155,7 @@ export default function Home() {
 
           <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
             <p className="text-xs text-slate-700">
-              <strong>Note:</strong> Your payment depends on your randomly assigned ticket. You could pay as little as $1 or up to $100.
+              <strong>Note:</strong> Your payment depends on your randomly assigned ticket number.
             </p>
           </div>
         </div>
@@ -238,7 +237,7 @@ export default function Home() {
 
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-5">
               <p className="text-xs text-slate-700">
-                You will be randomly assigned a ticket number and charged $1-$100 based on that number.
+                You will be randomly assigned a ticket number and charged based on that number.
               </p>
             </div>
 
