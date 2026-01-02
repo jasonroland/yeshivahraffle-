@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { db } from '@/src/db';
 import { tickets } from '@/src/db/schema';
 import { authorizeTransaction, getCardPointeConfig, isTransactionApproved, formatAmountToCents } from '@/src/lib/cardpointe';
+import { getClientIp, isIpBlocked, recordFailedAttempt } from '@/src/lib/ip-blocking';
 import { eq, sql } from 'drizzle-orm';
 
 const enterRaffleSchema = z.object({
@@ -18,6 +19,16 @@ const enterRaffleSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // Get client IP and check if blocked
+    const clientIp = getClientIp(request);
+
+    if (await isIpBlocked(clientIp)) {
+      return NextResponse.json(
+        { success: false, error: 'Too many failed attempts. Please try again later or contact support.' },
+        { status: 403 }
+      );
+    }
+
     // Parse and validate request body
     const body = await request.json();
     const validatedData = enterRaffleSchema.parse(body);
@@ -160,7 +171,21 @@ export async function POST(request: NextRequest) {
         })
         .where(eq(tickets.id, assignedTicket.id));
 
+      // Record failed payment attempt for IP blocking
+      const cardLastFour = validatedData.cardNumber.slice(-4);
       const errorMessage = error instanceof Error ? error.message : 'Payment failed';
+      const { blocked } = await recordFailedAttempt(clientIp, cardLastFour, errorMessage);
+
+      if (blocked) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Too many failed payment attempts. Your access has been temporarily restricted.',
+          },
+          { status: 403 }
+        );
+      }
+
       return NextResponse.json(
         {
           success: false,
