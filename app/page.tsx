@@ -130,6 +130,18 @@ export default function LandingPage() {
           <p className="text-stone-400 text-xs">
             1069 Dickens Street, Far Rockaway, NY 11691
           </p>
+          {/* Chill Labs Badge */}
+          <div className="flex justify-center items-center mt-6 w-full">
+            <iframe
+              src="https://chilllabs.vercel.app/badge"
+              style={{
+                border: 'none',
+                width: '220px',
+                height: '60px'
+              }}
+              title="Made by Chill Labs"
+            />
+          </div>
         </div>
       </div>
     </div>
