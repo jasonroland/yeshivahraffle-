@@ -110,8 +110,8 @@ export default function RafflePage() {
         {/* Prize */}
         <div className="bg-[#f5f0e8] rounded-xl p-6 shadow-md text-center">
           <div className="text-6xl mb-3">🍷</div>
-          <h2 className="text-lg font-serif font-bold text-stone-800">Premium Wine Bottle</h2>
-          <p className="text-sm text-stone-600 mt-1">Win this beautiful prize!</p>
+          <h2 className="text-lg font-serif font-bold text-stone-800">$750 Gift Card to Spruce D&apos;Vine</h2>
+          <p className="text-sm text-stone-600 mt-1">Win a $750 gift card!</p>
         </div>
 
         {/* How it works */}
@@ -220,12 +220,12 @@ export default function RafflePage() {
             <br />
             Attn: "No Purchase Necessary Entry"
             <br />
-            1069 Dickens Street
+            206 Hungry Harbor Road
             <br />
-            Far Rockaway, NY 11691
+            Valley Stream, NY 11581
           </p>
           <p>
-            All mail-in entries must be received by November 21, 2025 to be
+            All mail-in entries must be received by March 20, 2026 to be
             eligible. Entries that are incomplete, illegible, mechanically
             reproduced, or received after the deadline will not be accepted.
           </p>

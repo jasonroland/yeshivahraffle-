@@ -128,7 +128,7 @@ export default function LandingPage() {
             Yeshivas Tiferes Yisroel v&apos;Moshe
           </p>
           <p className="text-stone-400 text-xs">
-            1069 Dickens Street, Far Rockaway, NY 11691
+            206 Hungry Harbor Road, Valley Stream, NY 11581
           </p>
           {/* Chill Labs Badge */}
           <div className="flex justify-center items-center mt-6 w-full">
