@@ -71,55 +71,66 @@ export default function PaymentForm({ onCancel }: PaymentFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+        <label htmlFor="name" className="block text-sm font-semibold text-slate-700 mb-1.5">
           Name
         </label>
         <input
+          id="name"
+          name="name"
           type="text"
           required
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           placeholder="Your name"
+          autoComplete="name"
           disabled={loading}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+        <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-1.5">
           Email
         </label>
         <input
+          id="email"
+          name="email"
           type="email"
           required
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           placeholder="your@email.com"
+          autoComplete="email"
           disabled={loading}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+        <label htmlFor="phone" className="block text-sm font-semibold text-slate-700 mb-1.5">
           Phone
         </label>
         <input
+          id="phone"
+          name="phone"
           type="tel"
           required
           value={formData.phone}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           placeholder="(555) 123-4567"
+          autoComplete="tel"
           disabled={loading}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+        <label htmlFor="ccnumber" className="block text-sm font-semibold text-slate-700 mb-1.5">
           Card Number
         </label>
         <input
+          id="ccnumber"
+          name="ccnumber"
           type="text"
           required
           value={formData.cardNumber}
@@ -130,6 +141,7 @@ export default function PaymentForm({ onCancel }: PaymentFormProps) {
           }}
           className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           placeholder="1234 5678 9012 3456"
+          autoComplete="cc-number"
           maxLength={19}
           disabled={loading}
         />
@@ -137,10 +149,12 @@ export default function PaymentForm({ onCancel }: PaymentFormProps) {
 
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+          <label htmlFor="ccmonth" className="block text-sm font-semibold text-slate-700 mb-1.5">
             Month
           </label>
           <input
+            id="ccmonth"
+            name="ccmonth"
             type="text"
             required
             value={formData.expMonth}
@@ -152,15 +166,18 @@ export default function PaymentForm({ onCancel }: PaymentFormProps) {
             }}
             className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             placeholder="MM"
+            autoComplete="cc-exp-month"
             maxLength={2}
             disabled={loading}
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+          <label htmlFor="ccyear" className="block text-sm font-semibold text-slate-700 mb-1.5">
             Year
           </label>
           <input
+            id="ccyear"
+            name="ccyear"
             type="text"
             required
             value={formData.expYear}
@@ -170,15 +187,18 @@ export default function PaymentForm({ onCancel }: PaymentFormProps) {
             }}
             className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             placeholder="YYYY"
+            autoComplete="cc-exp-year"
             maxLength={4}
             disabled={loading}
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+          <label htmlFor="cvc" className="block text-sm font-semibold text-slate-700 mb-1.5">
             CVV
           </label>
           <input
+            id="cvc"
+            name="cvc"
             type="text"
             required
             value={formData.cvv}
@@ -188,6 +208,7 @@ export default function PaymentForm({ onCancel }: PaymentFormProps) {
             }}
             className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             placeholder="123"
+            autoComplete="cc-csc"
             maxLength={4}
             disabled={loading}
           />
@@ -195,10 +216,12 @@ export default function PaymentForm({ onCancel }: PaymentFormProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+        <label htmlFor="zip" className="block text-sm font-semibold text-slate-700 mb-1.5">
           Zip Code
         </label>
         <input
+          id="zip"
+          name="zip"
           type="text"
           required
           value={formData.zip}
@@ -208,6 +231,7 @@ export default function PaymentForm({ onCancel }: PaymentFormProps) {
           }}
           className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           placeholder="12345"
+          autoComplete="postal-code"
           maxLength={5}
           disabled={loading}
         />
