@@ -87,9 +87,14 @@ export default function RafflePage() {
         {/* CTA Button */}
         <button
           onClick={() => setShowPaymentModal(true)}
-          className="w-full py-4 bg-[#722F37] text-white text-lg font-semibold rounded-xl shadow-lg hover:bg-[#5a252c] transition-colors"
+          disabled={!loading && stats.available === 0}
+          className={`w-full py-4 text-white text-lg font-semibold rounded-xl shadow-lg transition-colors ${
+            !loading && stats.available === 0
+              ? 'bg-stone-400 cursor-not-allowed'
+              : 'bg-[#722F37] hover:bg-[#5a252c]'
+          }`}
         >
-          Enter Raffle Now
+          {!loading && stats.available === 0 ? 'Sold Out' : 'Enter Raffle Now'}
         </button>
 
         {/* Stats */}
