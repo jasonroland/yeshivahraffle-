@@ -6,7 +6,7 @@ A modern, mobile-first raffle application where participants are randomly assign
 
 - **Random Ticket Assignment**: Users don't choose their ticket - they're randomly assigned one after payment authorization
 - **Race Condition Prevention**: Uses PostgreSQL transactions with row-level locking to ensure no duplicate tickets
-- **Stripe Integration**: Secure payment processing with authorization before assignment
+- **CardConnect Integration**: Secure payment processing with authorization before assignment
 - **Real-time Updates**: Ticket board updates every 5 seconds showing available/sold tickets
 - **Mobile-First Design**: Clean, simple UI optimized for mobile devices
 - **Automatic Receipts**: Stripe sends email receipts to participants
